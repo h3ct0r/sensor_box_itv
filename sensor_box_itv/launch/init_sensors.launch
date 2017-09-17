@@ -1,0 +1,36 @@
+<launch>
+    <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch">
+        <arg name="device_ip" value="192.168.1.201"/>
+    </include>
+
+    <include file="$(find sensor_box_itv)/launch/axis_itv.launch"></include>
+    <include file="$(find but_calibration_camera_velodyne)/launch/coloring.launch"></include>
+
+    <include file="$(find o3d3xx)/launch/camera.launch">
+        <arg name="ip" value="192.168.1.69"/>
+    </include>
+
+    <include file="$(find sensor_box_itv)/launch/itv_pantilt_with_velodyne_tf.launch"></include>
+    <node pkg="sensor_box_itv" type="continuous_tilt" name="continuous_tilt"></node>
+
+    <include file="$(find sensor_box_itv)/launch/octomap.launch"></include>
+
+    <arg name="path_to_bags" value="/home/h3ct0r/Desktop/"/>
+    <arg name="record_velodyne" default="true" />
+    <arg name="record_rgb_camera" default="false" />
+    <arg name="record_tof_camera" default="true" />
+
+    <node pkg="rosbag" type="record" name="rosbag_record_velodyne"
+       args="record -o $(arg path_to_bags)/velodyne /joint_states /joint_command /tf /tf_static /velodyne_colored_points /velodyne_nodelet_manager/bond /velodyne_nodelet_manager_cloud/parameter_descriptions /velodyne_nodelet_manager_cloud/parameter_updates /velodyne_nodelet_manager_driver/parameter_descriptions /velodyne_nodelet_manager_driver/parameter_updates /velodyne_packets /velodyne_points"
+       if="$(arg record_velodyne)" />
+
+    <node pkg="rosbag" type="record" name="rosbag_record_rgb_camera"
+       args="record -o $(arg path_to_bags)/rgb_camera /joint_states /joint_command /tf /tf_static /axis/camera_info /axis/image_color /axis/image_color/compressed /axis/image_color/ ompressed/parameter_descriptions /axis/image_color/compressed/parameter_updates /axis/image_raw /axis/image_raw/compressed /axis/image_rect_color /axis/image_rect_color/compressed /axis/image_rect_color/compressed/parameter_descriptions /axis/image_rect_color/compressed/parameter_updates"
+       if="$(arg record_rgb_camera)" />
+
+    <node pkg="rosbag" type="record" name="rosbag_record_tof_camera"
+       args="record -o $(arg path_to_bags)/tof_camera /joint_states /joint_command /tf /tf_static /o3d3xx/camera/cloud /o3d3xx/camera/confidence /o3d3xx/camera/confidence/compressed /o3d3xx/camera/confidence/compressed/parameter_descriptions /o3d3xx/camera/confidence/compressed/parameter_updates /o3d3xx/camera/confidence/compressedDepth /o3d3xx/camera/confidence/compressedDepth/parameter_descriptions /o3d3xx/camera/confidence/compressedDepth/parameter_updates /o3d3xx/camera/confidence/theora /o3d3xx/camera/confidence/theora/parameter_descriptions /o3d3xx/camera/confidence/theora/parameter_updates" 
+       if="$(arg record_tof_camera)"/>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find sensor_box_itv)/cfg/rviz_sensors.rviz"/>
+</launch>

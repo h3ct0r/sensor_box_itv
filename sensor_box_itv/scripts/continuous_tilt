@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+
+import rospy
+import sys
+import time
+
+from sensor_msgs.msg import JointState
+
+reached = False
+joint_msg = None
+
+def set_angles(pan, tilt):
+    pub = rospy.Publisher("ptu/cmd", JointState, queue_size=1)
+    time.sleep(0.5)
+
+    js = JointState()
+    js.name = [ "ptu_pan", "ptu_tilt" ]
+    js.velocity = [ 0.1, 0.1 ]
+    js.position = [ pan, tilt ]
+    pub.publish(js)
+
+def joint_states_callback(msg):
+    global joint_msg
+    joint_msg = msg
+    #print 'Received msg:', msg.header.seq
+
+if __name__ == '__main__':
+    use_pan = False
+
+    rospy.init_node('ptu_cmd_angles')
+    rospy.Subscriber('joint_states', JointState, joint_states_callback)
+
+    tolerance = 0.1
+
+    tilt_min = -0.5
+    tilt_max = 0.1
+    tilt = tilt_min
+
+    if use_pan:
+        pan_min = -0.7
+        pan_max = 0.7
+        pan = pan_min
+    else:
+        pan = 0.0
+
+    while not rospy.is_shutdown():
+        if joint_msg and abs(joint_msg.position[1] - tilt) < tolerance:
+            if tilt == tilt_min:
+                tilt = tilt_max
+            else:
+                tilt = tilt_min
+
+        if use_pan:
+            if joint_msg and abs(joint_msg.position[0] - pan) < tolerance:
+                if pan == pan_min:
+                    pan = pan_max
+                else:
+                    pan = pan_min
+
+        set_angles(
+            float(pan),
+            float(tilt))
+        print 'Sent control:', pan, tilt

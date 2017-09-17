@@ -1,0 +1,21 @@
+<launch>
+
+	<node pkg="sensor_box_itv" type="velodyne_to_ptu" name="broadcaster_frame1" />
+
+	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server">
+		<param name="resolution" value="0.04" />
+		
+		<!-- fixed map frame (set to 'map' if SLAM or localization running!) -->
+		<param name="frame_id" type="string" value="base_link" />
+		
+		<!-- maximum range to integrate (speedup!) -->
+		<param name="sensor_model/max_range" value="100.0" />
+		
+		<!-- data source to integrate (PointCloud2) -->
+		<remap from="cloud_in" to="/velodyne_colored_points" />
+	
+	</node>
+
+
+	  
+</launch>
