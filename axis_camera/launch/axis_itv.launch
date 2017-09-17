@@ -1,0 +1,28 @@
+<launch>
+  <arg name="camera_name" default="axis" />
+  <arg name="hostname" default="192.168.1.200" />
+  <arg name="password" default="243789" />
+  <arg name="enable_theora" default="0" />
+  <arg name="enable_ptz" default="0" />
+  <arg name="enable_ptz_teleop" default="0" />
+  <arg name="camera_info_url" value="package://axis_camera/cfg/itv_axis_calib.yaml"/>
+
+  <group ns="$(arg camera_name)">
+    <param name="hostname" value="$(arg hostname)" />
+    <param name="password" value="$(arg password)" />
+    <param name="width" value="640" />
+    <param name="height" value="480" />
+    <param name="camera_info_url" value="$(arg camera_info_url)" />
+    
+    <node pkg="axis_camera" type="axis.py" name="axis" />
+    
+    <node pkg="image_transport" type="republish" name="republish" args="compressed" if="$(arg enable_theora)">
+      <remap from="in" to="image_raw" />
+      <remap from="out" to="image_raw_out" />
+    </node>
+
+  </group>
+
+  <node name="image_transport_decompressed" pkg="image_transport" type="republish" args="compressed in:=/axis/image_raw raw out:=/axis/image_raw //image_transport:=compressed"></node>
+  <node name="image_proc" pkg="image_proc" type="image_proc" ns="axis"/>
+</launch>
